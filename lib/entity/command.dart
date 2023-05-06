@@ -20,6 +20,18 @@ Command generateCommand({required String command}) {
     case 'list_available_rooms':
       return ListAvailableRoomsCommand(rawParams: rawParams);
 
+    case 'list_guest':
+      return ListGuestCommand(rawParams: rawParams);
+
+    case 'get_guest_in_room':
+      return GetGuestInRoomCommand(rawParams: rawParams);
+
+    case 'list_guest_by_age':
+      return ListGuestByAgeCommand(rawParams: rawParams);
+
+    case 'list_guest_by_floor':
+      return ListGuestByFloorCommand(rawParams: rawParams);
+
     default:
       return UnknownCommand(rawParams: rawParams);
   }
@@ -103,5 +115,55 @@ class ListAvailableRoomsCommand extends Command {
   });
 
   @override
-  int get requiredParamslength => 0;
+  int get _requiredParamslength => 0;
+}
+
+class ListGuestCommand extends Command {
+  ListGuestCommand({
+    required super.rawParams,
+  });
+
+  @override
+  int get _requiredParamslength => 0;
+}
+
+class GetGuestInRoomCommand extends Command {
+  GetGuestInRoomCommand({
+    required super.rawParams,
+  });
+
+  @override
+  int get _requiredParamslength => 1;
+
+  String get roomNumber =>
+      rawParams.length >= _requiredParamslength ? rawParams[0] : '';
+}
+
+class ListGuestByAgeCommand extends Command {
+  ListGuestByAgeCommand({
+    required super.rawParams,
+  });
+
+  @override
+  int get _requiredParamslength => 2;
+
+  String get operator =>
+      rawParams.length >= _requiredParamslength ? rawParams[0] : '';
+
+  int get age => rawParams.length >= _requiredParamslength
+      ? int.tryParse(rawParams[1]) ?? 0
+      : 0;
+}
+
+class ListGuestByFloorCommand extends Command {
+  ListGuestByFloorCommand({
+    required super.rawParams,
+  });
+
+  @override
+  int get _requiredParamslength => 1;
+
+  int get floor => rawParams.length >= _requiredParamslength
+      ? int.tryParse(rawParams[0]) ?? 0
+      : 0;
 }

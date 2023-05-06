@@ -41,6 +41,14 @@ void executeCommand(Command command) {
     executeCheckoutRoomCommand(command);
   } else if (command is ListAvailableRoomsCommand) {
     executeListAvailableRoomsCommand(command);
+  } else if (command is ListGuestCommand) {
+    executeListGuestCommand(command);
+  } else if (command is GetGuestInRoomCommand) {
+    executeGetGuestInRoomCommand(command);
+  } else if (command is ListGuestByAgeCommand) {
+    executeListGuestByAgeCommand(command);
+  } else if (command is ListGuestByFloorCommand) {
+    executeListGuestByFloorCommand(command);
   }
 }
 
@@ -152,4 +160,121 @@ void executeListAvailableRoomsCommand(ListAvailableRoomsCommand command) {
   }
 
   print(availableRooms.map((e) => e.number).join(' '));
+}
+
+void executeListGuestCommand(ListGuestCommand command) {
+  final hotel = _hotel;
+  if (hotel == null) {
+    print('The hotel had not created');
+    return;
+  }
+
+  var guests = hotel.keyCards
+      .where((e) => e.isUsing)
+      .map((e) => e.owner?.name ?? '')
+      .toSet()
+      .toList();
+
+  if (guests.isEmpty) {
+    print('No any guest at the hotel for now');
+    return;
+  }
+
+  print(guests.join(', '));
+}
+
+void executeGetGuestInRoomCommand(GetGuestInRoomCommand command) {
+  final hotel = _hotel;
+  if (hotel == null) {
+    print('The hotel had not created');
+    return;
+  }
+
+  final room = hotel.rooms.tryFirstWhere((e) => e.number == command.roomNumber);
+  if (room == null) {
+    print('Romm number is invalid');
+    return;
+  }
+
+  final owner = room.owner;
+  if (owner == null) {
+    print('${room.number} is not in use');
+    return;
+  }
+
+  print(owner.name);
+}
+
+void executeListGuestByAgeCommand(ListGuestByAgeCommand command) {
+  final hotel = _hotel;
+  if (hotel == null) {
+    print('The hotel had not created');
+    return;
+  }
+
+  bool Function(int, int)? test;
+
+  switch (command.operator) {
+    case '>':
+      test = (p0, p1) => p0 > p1;
+      break;
+
+    case '>=':
+      test = (p0, p1) => p0 >= p1;
+      break;
+
+    case '<':
+      test = (p0, p1) => p0 < p1;
+      break;
+
+    case '<=':
+      test = (p0, p1) => p0 <= p1;
+      break;
+
+    case '=':
+      test = (p0, p1) => p0 == p1;
+      break;
+
+    case '!=':
+      test = (p0, p1) => p0 != p1;
+      break;
+
+    default:
+      break;
+  }
+
+  if (test == null) {
+    print('The operator is invalid');
+    return;
+  }
+
+  final guests = hotel.guests.where((e) => test!(e.age, command.age)).toList();
+  if (guests.isEmpty) {
+    print('No guest matches this range of age');
+    return;
+  }
+
+  print(guests.map((e) => e.name).join(', '));
+}
+
+void executeListGuestByFloorCommand(ListGuestByFloorCommand command) {
+  print('command list guest by floor');
+  print(command.floor.toString());
+  final hotel = _hotel;
+  if (hotel == null) {
+    print('The hotel had not created');
+    return;
+  }
+
+  final rooms = hotel.rooms
+      .where((e) => e.floor == command.floor && e.status == RoomStatus.using)
+      .toList();
+  // .map((e) => e.owner?.name ?? '');
+
+  if (rooms.isEmpty) {
+    print('No guests are on floor ${command.floor}');
+    return;
+  }
+
+  print(rooms.map((e) => e.owner?.name ?? '-').join(', '));
 }
