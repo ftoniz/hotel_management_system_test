@@ -60,6 +60,9 @@ String executeCommand(Command command) {
   return '';
 }
 
+/// This function is for createing the hotel
+/// It can execute only one time
+/// On other times will be rejected
 String executeCreateHotelComamnd(CreateHotelCommand command) {
   if (_hotel != null) {
     return 'The hotel had already created';
@@ -73,6 +76,8 @@ String executeCreateHotelComamnd(CreateHotelCommand command) {
   return 'Hotel created with ${command.numberOfFloor} floor(s), ${command.numberOfRoomsPerFloor} room(s) per floor.';
 }
 
+/// This function is for booking the room for someone(guest)
+/// Can't book the room that has been booked
 String executeBookRoomCommand(BookRoomCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
@@ -108,6 +113,8 @@ String executeBookRoomCommand(BookRoomCommand command) {
   }
 }
 
+/// This function is for checing out the room
+/// The key and guest must match If not, rejected.
 String executeCheckoutRoomCommand(CheckoutRoomCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
@@ -134,6 +141,7 @@ String executeCheckoutRoomCommand(CheckoutRoomCommand command) {
   return 'Room ${room.number} is checkout.';
 }
 
+/// This function is for getting a list of rooms that available to book
 String executeListAvailableRoomsCommand(ListAvailableRoomsCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
@@ -148,6 +156,7 @@ String executeListAvailableRoomsCommand(ListAvailableRoomsCommand command) {
   return availableRooms.map((e) => e.number).join(', ');
 }
 
+/// This function is for getting a list of guests in the hotel
 String executeListGuestCommand(ListGuestCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
@@ -163,6 +172,7 @@ String executeListGuestCommand(ListGuestCommand command) {
   return guests.map((e) => e.name).toSet().toList().join(', ');
 }
 
+/// This function is for getting a guest who owns this room
 String executeGetGuestInRoomCommand(GetGuestInRoomCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
@@ -182,6 +192,7 @@ String executeGetGuestInRoomCommand(GetGuestInRoomCommand command) {
   return owner.name;
 }
 
+/// This function is for getting a list of guests whose age matches the range
 String executeListGuestByAgeCommand(ListGuestByAgeCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
@@ -231,6 +242,7 @@ String executeListGuestByAgeCommand(ListGuestByAgeCommand command) {
   return guests.map((e) => e.name).toSet().join(', ');
 }
 
+/// This function is for getting a list of guests who book a room on this floor
 String executeListGuestByFloorCommand(ListGuestByFloorCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
@@ -250,6 +262,7 @@ String executeListGuestByFloorCommand(ListGuestByFloorCommand command) {
   return guestsName.join(', ');
 }
 
+/// This function is for checking out all rooms on this floor
 String executeCheckoutGuestByFloorCommand(CheckoutGuestByFloorCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
@@ -272,6 +285,8 @@ String executeCheckoutGuestByFloorCommand(CheckoutGuestByFloorCommand command) {
   return 'Room $checkoutRoomNumbers are checkout.';
 }
 
+/// This function is for book all rooms on this floor
+/// All rooms on this floor must be available if not, rejected
 String executeBookRoomsByFloorCommand(BookRoomsByFloorCommand command) {
   final hotel = _hotel;
   if (hotel == null) {

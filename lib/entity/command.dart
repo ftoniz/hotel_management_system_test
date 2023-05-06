@@ -1,3 +1,4 @@
+/// This function using to cast the command string to class
 Command generateCommand({required String command}) {
   var rawParams = command.split(' ');
   if (rawParams.isEmpty) {
@@ -43,6 +44,7 @@ Command generateCommand({required String command}) {
   }
 }
 
+/// This class is the interface of the command class
 abstract class Command {
   Command({
     required this.rawParams,
@@ -54,6 +56,8 @@ abstract class Command {
   bool get isValid => rawParams.length >= _requiredParamslength;
 }
 
+/// This is the unknown command class
+/// The system has no need to do anything
 class UnknownCommand extends Command {
   UnknownCommand({
     required super.rawParams,
@@ -63,6 +67,7 @@ class UnknownCommand extends Command {
   int get _requiredParamslength => 0;
 }
 
+/// This is a command to execute to create the hote;
 class CreateHotelCommand extends Command {
   CreateHotelCommand({
     required super.rawParams,
@@ -80,6 +85,7 @@ class CreateHotelCommand extends Command {
       : 0;
 }
 
+/// This is a command to execute to book a room for guests
 class BookRoomCommand extends Command {
   BookRoomCommand({
     required super.rawParams,
@@ -99,6 +105,7 @@ class BookRoomCommand extends Command {
       : 0;
 }
 
+/// This is a command to execute to checout a room
 class CheckoutRoomCommand extends Command {
   CheckoutRoomCommand({
     required super.rawParams,
@@ -115,6 +122,7 @@ class CheckoutRoomCommand extends Command {
       rawParams.length >= _requiredParamslength ? rawParams[1] : '';
 }
 
+/// This is a command to execute to get a list of rooms that are available for booking
 class ListAvailableRoomsCommand extends Command {
   ListAvailableRoomsCommand({
     required super.rawParams,
@@ -124,6 +132,7 @@ class ListAvailableRoomsCommand extends Command {
   int get _requiredParamslength => 0;
 }
 
+/// This is a command to execute to get a list of guests in the hotel
 class ListGuestCommand extends Command {
   ListGuestCommand({
     required super.rawParams,
@@ -133,6 +142,7 @@ class ListGuestCommand extends Command {
   int get _requiredParamslength => 0;
 }
 
+/// This is a command to execute to get a guest who owns the room
 class GetGuestInRoomCommand extends Command {
   GetGuestInRoomCommand({
     required super.rawParams,
@@ -145,6 +155,7 @@ class GetGuestInRoomCommand extends Command {
       rawParams.length >= _requiredParamslength ? rawParams[0] : '';
 }
 
+/// This is a command to execute to get a list of guest whose ages match the ranges
 class ListGuestByAgeCommand extends Command {
   ListGuestByAgeCommand({
     required super.rawParams,
@@ -161,6 +172,7 @@ class ListGuestByAgeCommand extends Command {
       : 0;
 }
 
+/// This is a command to execute to get a list of guests who are on this floor
 class ListGuestByFloorCommand extends Command {
   ListGuestByFloorCommand({
     required super.rawParams,
@@ -174,6 +186,7 @@ class ListGuestByFloorCommand extends Command {
       : 0;
 }
 
+/// This is a command to execute to check out all rooms on this floor
 class CheckoutGuestByFloorCommand extends Command {
   CheckoutGuestByFloorCommand({
     required super.rawParams,
@@ -187,6 +200,7 @@ class CheckoutGuestByFloorCommand extends Command {
       : 0;
 }
 
+/// This is a command to execute to book all rooms on this floor
 class BookRoomsByFloorCommand extends Command {
   BookRoomsByFloorCommand({
     required super.rawParams,
