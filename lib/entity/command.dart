@@ -15,7 +15,7 @@ Command generateCommand({required String command}) {
       return BookRoomCommand(rawParams: rawParams);
 
     case 'checkout':
-      return CheckOutRoomCommand(rawParams: rawParams);
+      return CheckoutRoomCommand(rawParams: rawParams);
 
     case 'list_available_rooms':
       return ListAvailableRoomsCommand(rawParams: rawParams);
@@ -31,6 +31,12 @@ Command generateCommand({required String command}) {
 
     case 'list_guest_by_floor':
       return ListGuestByFloorCommand(rawParams: rawParams);
+
+    case 'checkout_guest_by_floor':
+      return CheckoutGuestByFloorCommand(rawParams: rawParams);
+
+    case 'book_by_floor':
+      return BookRoomsByFloorCommand(rawParams: rawParams);
 
     default:
       return UnknownCommand(rawParams: rawParams);
@@ -93,8 +99,8 @@ class BookRoomCommand extends Command {
       : 0;
 }
 
-class CheckOutRoomCommand extends Command {
-  CheckOutRoomCommand({
+class CheckoutRoomCommand extends Command {
+  CheckoutRoomCommand({
     required super.rawParams,
   });
 
@@ -165,5 +171,38 @@ class ListGuestByFloorCommand extends Command {
 
   int get floor => rawParams.length >= _requiredParamslength
       ? int.tryParse(rawParams[0]) ?? 0
+      : 0;
+}
+
+class CheckoutGuestByFloorCommand extends Command {
+  CheckoutGuestByFloorCommand({
+    required super.rawParams,
+  });
+
+  @override
+  int get _requiredParamslength => 1;
+
+  int get floor => rawParams.length >= _requiredParamslength
+      ? int.tryParse(rawParams[0]) ?? 0
+      : 0;
+}
+
+class BookRoomsByFloorCommand extends Command {
+  BookRoomsByFloorCommand({
+    required super.rawParams,
+  });
+
+  @override
+  int get _requiredParamslength => 3;
+
+  int get floor => rawParams.length >= _requiredParamslength
+      ? int.tryParse(rawParams[0]) ?? 0
+      : 0;
+
+  String get guestName =>
+      rawParams.length >= _requiredParamslength ? rawParams[1] : '';
+
+  int get guestAge => rawParams.length >= _requiredParamslength
+      ? int.tryParse(rawParams[2]) ?? 0
       : 0;
 }

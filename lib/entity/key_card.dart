@@ -16,7 +16,7 @@ class KeyCard {
   bool canRetureKeyBy(String guestName) =>
       isUsing &&
       owner?.name == guestName &&
-      (_room?.canCheckOutBy(guestName) ?? false);
+      (_room?.canCheckoutBy(guestName) ?? false);
 
   bool setupFor({
     required Room room,
@@ -32,8 +32,13 @@ class KeyCard {
   bool returnKeyBy(String guestName) {
     if (!canRetureKeyBy(guestName)) return false;
 
-    _room?.checkOutBy(guestName);
+    _room?.checkoutBy(guestName);
     _room = null;
     return true;
+  }
+
+  void forceRetureKey() {
+    _room?.forceCheckout();
+    _room = null;
   }
 }

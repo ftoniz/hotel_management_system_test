@@ -27,7 +27,7 @@ class Room {
   Guest? get owner => _owner;
 
   bool get canCheckIn => _owner == null;
-  bool canCheckOutBy(String guestName) => _owner?.name == guestName;
+  bool canCheckoutBy(String guestName) => _owner?.name == guestName;
 
   bool checkInBy(Guest guest) {
     if (!canCheckIn) {
@@ -39,13 +39,18 @@ class Room {
     return true;
   }
 
-  bool checkOutBy(String guestName) {
-    if (!canCheckOutBy(guestName)) {
+  bool checkoutBy(String guestName) {
+    if (!canCheckoutBy(guestName)) {
       return false;
     }
 
     _owner = null;
     _status = RoomStatus.ready;
     return true;
+  }
+
+  void forceCheckout() {
+    _owner = null;
+    _status = RoomStatus.ready;
   }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:hotel_management_system/entity/command.dart';
 import 'package:hotel_management_system/entity/guest.dart';
 import 'package:hotel_management_system/entity/hotel.dart';
+import 'package:hotel_management_system/entity/key_card.dart';
 import 'package:hotel_management_system/entity/room.dart';
 import 'package:hotel_management_system/extensions/list_extensions.dart';
 
@@ -37,7 +38,7 @@ void executeCommand(Command command) {
     executeCreateHotelComamnd(command);
   } else if (command is BookRoomCommand) {
     executeBookRoomCommand(command);
-  } else if (command is CheckOutRoomCommand) {
+  } else if (command is CheckoutRoomCommand) {
     executeCheckoutRoomCommand(command);
   } else if (command is ListAvailableRoomsCommand) {
     executeListAvailableRoomsCommand(command);
@@ -49,6 +50,10 @@ void executeCommand(Command command) {
     executeListGuestByAgeCommand(command);
   } else if (command is ListGuestByFloorCommand) {
     executeListGuestByFloorCommand(command);
+  } else if (command is CheckoutGuestByFloorCommand) {
+    executeCheckoutGuestByFloorCommand(command);
+  } else if (command is BookRoomsByFloorCommand) {
+    executeBookRoomsByFloorCommand(command);
   }
 }
 
@@ -85,7 +90,7 @@ void executeBookRoomCommand(BookRoomCommand command) {
 
   switch (room.status) {
     case RoomStatus.ready:
-      var keyCard =
+      final keyCard =
           hotel.keyCards.tryFirstWhere((e) => e.canSetupFor(room: room));
 
       if (keyCard == null) {
@@ -115,7 +120,7 @@ void executeBookRoomCommand(BookRoomCommand command) {
   }
 }
 
-void executeCheckoutRoomCommand(CheckOutRoomCommand command) {
+void executeCheckoutRoomCommand(CheckoutRoomCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
     print('The hotel had not created');
@@ -133,7 +138,7 @@ void executeCheckoutRoomCommand(CheckOutRoomCommand command) {
     return;
   }
 
-  var canReturnKey = keyCard.canRetureKeyBy(command.guestName);
+  final canReturnKey = keyCard.canRetureKeyBy(command.guestName);
   if (!canReturnKey) {
     print(
       'Only ${keyCard.owner?.name ?? '-'} can checkout with keycard number ${keyCard.number}.',
@@ -153,7 +158,7 @@ void executeListAvailableRoomsCommand(ListAvailableRoomsCommand command) {
     return;
   }
 
-  var availableRooms = hotel.rooms.where((e) => e.status == RoomStatus.ready);
+  final availableRooms = hotel.rooms.where((e) => e.status == RoomStatus.ready);
   if (availableRooms.isEmpty) {
     print('Hotel is filled');
     return;
@@ -169,7 +174,7 @@ void executeListGuestCommand(ListGuestCommand command) {
     return;
   }
 
-  var guests = hotel.keyCards
+  final guests = hotel.keyCards
       .where((e) => e.isUsing)
       .map((e) => e.owner?.name ?? '')
       .toSet()
@@ -254,27 +259,96 @@ void executeListGuestByAgeCommand(ListGuestByAgeCommand command) {
     return;
   }
 
-  print(guests.map((e) => e.name).join(', '));
+  print(guests.map((e) => e.name).toSet().join(', '));
 }
 
 void executeListGuestByFloorCommand(ListGuestByFloorCommand command) {
-  print('command list guest by floor');
-  print(command.floor.toString());
   final hotel = _hotel;
   if (hotel == null) {
     print('The hotel had not created');
     return;
   }
 
-  final rooms = hotel.rooms
+  final guests = hotel.rooms
       .where((e) => e.floor == command.floor && e.status == RoomStatus.using)
+      .map((e) => e.owner?.name ?? '')
+      .where((e) => e != '')
+      .toSet()
       .toList();
-  // .map((e) => e.owner?.name ?? '');
 
-  if (rooms.isEmpty) {
+  if (guests.isEmpty) {
     print('No guests are on floor ${command.floor}');
     return;
   }
 
-  print(rooms.map((e) => e.owner?.name ?? '-').join(', '));
+  print(guests.join(', '));
+}
+
+void executeCheckoutGuestByFloorCommand(CheckoutGuestByFloorCommand command) {
+  final hotel = _hotel;
+  if (hotel == null) {
+    print('The hotel had not created');
+    return;
+  }
+
+  final keyCards = hotel.keyCards
+      .where((e) => e.isUsing && e.room?.floor == command.floor)
+      .toList();
+
+  if (keyCards.isEmpty) {
+    print('No rooms are on floor ${command.floor} is in use');
+    return;
+  }
+
+  final checkoutRoomNumbers =
+      keyCards.map((e) => e.room?.number ?? '').join(', ');
+
+  for (final keyCard in keyCards) {
+    keyCard.forceRetureKey();
+  }
+
+  print(
+    'Room $checkoutRoomNumbers are checkout.',
+  );
+}
+
+void executeBookRoomsByFloorCommand(BookRoomsByFloorCommand command) {
+  final hotel = _hotel;
+  if (hotel == null) {
+    print('The hotel had not created');
+    return;
+  }
+
+  final rooms = hotel.rooms.where((e) => e.floor == command.floor).toList();
+  final isAllRoomAvailable = rooms.every((e) => e.status == RoomStatus.ready);
+
+  if (!isAllRoomAvailable) {
+    print('Cannot book floor ${command.floor} for ${command.guestName}.');
+    return;
+  }
+
+  final List<KeyCard> keyCards = [];
+  for (final room in rooms) {
+    final keyCard =
+        hotel.keyCards.tryFirstWhere((e) => e.canSetupFor(room: room));
+
+    if (keyCard == null) {
+      print('All key cards are in use');
+      return;
+    }
+
+    keyCard.setupFor(
+      room: room,
+      guest: Guest(
+        name: command.guestName,
+        age: command.guestAge,
+      ),
+    );
+
+    keyCards.add(keyCard);
+  }
+
+  print(
+    'Room ${keyCards.map((e) => e.room?.number ?? '').join(', ')} are booked with keycard number ${keyCards.map((e) => e.number).join(', ')}',
+  );
 }
