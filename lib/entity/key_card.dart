@@ -13,7 +13,10 @@ class KeyCard {
   Guest? get owner => _room?.owner;
 
   bool canSetupFor({required Room room}) => !isUsing && room.canCheckIn;
-  bool canRetureKeyBy(String guestName) => isUsing && owner?.name == guestName;
+  bool canRetureKeyBy(String guestName) =>
+      isUsing &&
+      owner?.name == guestName &&
+      (_room?.canCheckOutBy(guestName) ?? false);
 
   bool setupFor({
     required Room room,
@@ -27,8 +30,7 @@ class KeyCard {
   }
 
   bool returnKeyBy(String guestName) {
-    var canCheckout = _room?.canCheckOutBy(guestName) ?? false;
-    if (!canRetureKeyBy(guestName) || !canCheckout) return false;
+    if (!canRetureKeyBy(guestName)) return false;
 
     _room?.checkOutBy(guestName);
     _room = null;

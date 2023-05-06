@@ -1,3 +1,5 @@
+import 'package:sprintf/sprintf.dart';
+
 import 'guest.dart';
 
 enum RoomStatus { ready, using }
@@ -5,12 +7,19 @@ enum RoomStatus { ready, using }
 class Room {
   Room({
     required RoomStatus status,
-    required this.number,
+    required this.index,
+    required this.floor,
   }) {
     _status = status;
+    number = sprintf(
+      '%01i%02i',
+      [floor, index],
+    );
   }
 
-  final String number;
+  final int floor;
+  final int index;
+  late final String number;
   late RoomStatus _status;
   Guest? _owner;
 
@@ -31,7 +40,7 @@ class Room {
   }
 
   bool checkOutBy(String guestName) {
-    if (canCheckOutBy(guestName)) {
+    if (!canCheckOutBy(guestName)) {
       return false;
     }
 

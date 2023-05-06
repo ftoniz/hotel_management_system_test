@@ -1,11 +1,18 @@
-import 'package:sprintf/sprintf.dart';
-
+import 'guest.dart';
 import 'key_card.dart';
 import 'room.dart';
 
 class Hotel {
-  late final List<Room> rooms;
-  late final List<KeyCard> keyCards;
+  late final List<Room> _rooms;
+  late final List<KeyCard> _keyCards;
+
+  List<Room> get rooms => _rooms;
+  List<KeyCard> get keyCards => _keyCards;
+  List<Guest> get guests => _keyCards
+      .where((e) => e.isUsing)
+      .map((e) => e.owner ?? Guest(name: '', age: -1))
+      .where((e) => e.age != -1)
+      .toList();
 
   Hotel({
     required int floor,
@@ -21,12 +28,12 @@ class Hotel {
         currentFloor += 1;
         currentRoomOnFloor = 0;
       } else {
-        var roomNumber = sprintf(
-          '%01i%02i',
-          [currentFloor, currentRoomOnFloor + 1],
-        );
         rooms.add(
-          Room(status: RoomStatus.ready, number: roomNumber),
+          Room(
+            status: RoomStatus.ready,
+            floor: currentFloor,
+            index: currentRoomOnFloor + 1,
+          ),
         );
         keyCards.add(
           KeyCard(number: keyCardNumber),
@@ -37,7 +44,7 @@ class Hotel {
       }
     }
 
-    this.rooms = rooms;
-    this.keyCards = keyCards;
+    _rooms = rooms;
+    _keyCards = keyCards;
   }
 }

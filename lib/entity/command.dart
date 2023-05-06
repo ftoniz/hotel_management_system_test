@@ -31,9 +31,9 @@ abstract class Command {
   });
 
   final List<String> rawParams;
-  int get requiredParamslength;
+  int get _requiredParamslength;
 
-  bool get isValid => rawParams.length >= requiredParamslength;
+  bool get isValid => rawParams.length >= _requiredParamslength;
 }
 
 class UnknownCommand extends Command {
@@ -42,7 +42,7 @@ class UnknownCommand extends Command {
   });
 
   @override
-  int get requiredParamslength => 0;
+  int get _requiredParamslength => 0;
 }
 
 class CreateHotelCommand extends Command {
@@ -51,13 +51,13 @@ class CreateHotelCommand extends Command {
   });
 
   @override
-  int get requiredParamslength => 2;
+  int get _requiredParamslength => 2;
 
-  int get numberOfFloor => rawParams.length >= requiredParamslength
+  int get numberOfFloor => rawParams.length >= _requiredParamslength
       ? int.tryParse(rawParams[0]) ?? 0
       : 0;
 
-  int get numberOfRoomsPerFloor => rawParams.length >= requiredParamslength
+  int get numberOfRoomsPerFloor => rawParams.length >= _requiredParamslength
       ? int.tryParse(rawParams[1]) ?? 0
       : 0;
 }
@@ -68,15 +68,15 @@ class BookRoomCommand extends Command {
   });
 
   @override
-  int get requiredParamslength => 3;
+  int get _requiredParamslength => 3;
 
   String get roomNumber =>
-      rawParams.length >= requiredParamslength ? rawParams[0] : '';
+      rawParams.length >= _requiredParamslength ? rawParams[0] : '';
 
   String get guestName =>
-      rawParams.length >= requiredParamslength ? rawParams[1] : '';
+      rawParams.length >= _requiredParamslength ? rawParams[1] : '';
 
-  int get guestAge => rawParams.length >= requiredParamslength
+  int get guestAge => rawParams.length >= _requiredParamslength
       ? int.tryParse(rawParams[2]) ?? 0
       : 0;
 }
@@ -87,14 +87,14 @@ class CheckOutRoomCommand extends Command {
   });
 
   @override
-  int get requiredParamslength => 2;
+  int get _requiredParamslength => 2;
 
-  int get keyCardNumber => rawParams.length >= requiredParamslength
+  int get keyCardNumber => rawParams.length >= _requiredParamslength
       ? int.tryParse(rawParams[0]) ?? 0
       : 0;
 
   String get guestName =>
-      rawParams.length >= requiredParamslength ? rawParams[1] : '';
+      rawParams.length >= _requiredParamslength ? rawParams[1] : '';
 }
 
 class ListAvailableRoomsCommand extends Command {
