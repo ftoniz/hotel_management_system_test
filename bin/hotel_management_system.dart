@@ -15,77 +15,75 @@ void main(List<String> arguments) {
 
 void runCommands() async {
   final fileName = 'input.txt';
-  final commands = await getCommandsFromFileName(fileName: fileName);
+  final fileData = await getStringFromFileName(fileName: fileName);
+  final commands = getCommandsFromString(fileData);
 
-  for (final command in commands) {
-    executeCommand(command);
-  }
+  final results = commands.map((command) => executeCommand(command)).join('\n');
+  print(results);
 }
 
-Future<List<Command>> getCommandsFromFileName({
+Future<String> getStringFromFileName({
   required String fileName,
-}) async {
-  final input = await File(fileName).readAsString();
-  return input
-      .split('\n')
-      .map((command) => generateCommand(command: command))
-      .where((command) => command is! UnknownCommand && command.isValid)
-      .toList();
-}
+}) async =>
+    await File(fileName).readAsString();
 
-void executeCommand(Command command) {
+List<Command> getCommandsFromString(
+  String input,
+) =>
+    input
+        .split('\n')
+        .map((command) => generateCommand(command: command))
+        .where((command) => command is! UnknownCommand && command.isValid)
+        .toList();
+
+String executeCommand(Command command) {
   if (command is CreateHotelCommand) {
-    executeCreateHotelComamnd(command);
+    return executeCreateHotelComamnd(command);
   } else if (command is BookRoomCommand) {
-    executeBookRoomCommand(command);
+    return executeBookRoomCommand(command);
   } else if (command is CheckoutRoomCommand) {
-    executeCheckoutRoomCommand(command);
+    return executeCheckoutRoomCommand(command);
   } else if (command is ListAvailableRoomsCommand) {
-    executeListAvailableRoomsCommand(command);
+    return executeListAvailableRoomsCommand(command);
   } else if (command is ListGuestCommand) {
-    executeListGuestCommand(command);
+    return executeListGuestCommand(command);
   } else if (command is GetGuestInRoomCommand) {
-    executeGetGuestInRoomCommand(command);
+    return executeGetGuestInRoomCommand(command);
   } else if (command is ListGuestByAgeCommand) {
-    executeListGuestByAgeCommand(command);
+    return executeListGuestByAgeCommand(command);
   } else if (command is ListGuestByFloorCommand) {
-    executeListGuestByFloorCommand(command);
+    return executeListGuestByFloorCommand(command);
   } else if (command is CheckoutGuestByFloorCommand) {
-    executeCheckoutGuestByFloorCommand(command);
+    return executeCheckoutGuestByFloorCommand(command);
   } else if (command is BookRoomsByFloorCommand) {
-    executeBookRoomsByFloorCommand(command);
+    return executeBookRoomsByFloorCommand(command);
   }
+  return '';
 }
 
-void executeCreateHotelComamnd(CreateHotelCommand command) {
+String executeCreateHotelComamnd(CreateHotelCommand command) {
   if (_hotel != null) {
-    print('The hotel had already created');
-    return;
+    return 'The hotel had already created';
   }
 
   _hotel = Hotel(
     floor: command.numberOfFloor,
     numberOfRoomsPerFloor: command.numberOfRoomsPerFloor,
   );
-
-  print(
-    'Hotel created with ${command.numberOfFloor} floor(s), ${command.numberOfRoomsPerFloor} room(s) per floor.',
-  );
+  return 'Hotel created with ${command.numberOfFloor} floor(s), ${command.numberOfRoomsPerFloor} room(s) per floor.';
 }
 
-void executeBookRoomCommand(BookRoomCommand command) {
+String executeBookRoomCommand(BookRoomCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
-    print('The hotel had not created');
-    return;
+    return 'The hotel had not created';
   }
 
   final room =
       hotel.rooms.tryFirstWhere((room) => room.number == command.roomNumber);
 
   if (room == null) {
-    print('The room number is incorrect');
-    return;
+    return 'The room number is incorrect';
   }
 
   switch (room.status) {
@@ -94,8 +92,7 @@ void executeBookRoomCommand(BookRoomCommand command) {
           hotel.keyCards.tryFirstWhere((e) => e.canSetupFor(room: room));
 
       if (keyCard == null) {
-        print('All key cards are in use');
-        return;
+        return 'All key cards are in use';
       }
 
       keyCard.setupFor(
@@ -106,25 +103,17 @@ void executeBookRoomCommand(BookRoomCommand command) {
         ),
       );
 
-      print(
-        'Room ${room.number} is booked by ${command.guestName} with keycard number ${keyCard.number}.',
-      );
-
-      return;
+      return 'Room ${room.number} is booked by ${command.guestName} with keycard number ${keyCard.number}.';
 
     case RoomStatus.using:
-      print(
-        'Cannot book room ${room.number} for ${command.guestName}, The room is currently booked by ${room.owner?.name ?? '-'}.',
-      );
-      return;
+      return 'Cannot book room ${room.number} for ${command.guestName}, The room is currently booked by ${room.owner?.name ?? '-'}.';
   }
 }
 
-void executeCheckoutRoomCommand(CheckoutRoomCommand command) {
+String executeCheckoutRoomCommand(CheckoutRoomCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
-    print('The hotel had not created');
-    return;
+    return 'The hotel had not created';
   }
 
   final keyCard = hotel.keyCards.tryFirstWhere(
@@ -134,44 +123,36 @@ void executeCheckoutRoomCommand(CheckoutRoomCommand command) {
   final room = keyCard?.room;
 
   if (keyCard == null || room == null) {
-    print('The key card number is incorrect or not in use');
-    return;
+    return 'The key card number is incorrect or not in use';
   }
 
   final canReturnKey = keyCard.canRetureKeyBy(command.guestName);
   if (!canReturnKey) {
-    print(
-      'Only ${keyCard.owner?.name ?? '-'} can checkout with keycard number ${keyCard.number}.',
-    );
-    return;
+    return 'Only ${keyCard.owner?.name ?? '-'} can checkout with keycard number ${keyCard.number}.';
   }
 
   keyCard.returnKeyBy(command.guestName);
-
-  print('Room ${room.number} is checkout.');
+  return 'Room ${room.number} is checkout.';
 }
 
-void executeListAvailableRoomsCommand(ListAvailableRoomsCommand command) {
+String executeListAvailableRoomsCommand(ListAvailableRoomsCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
-    print('The hotel had not created');
-    return;
+    return 'The hotel had not created';
   }
 
   final availableRooms = hotel.rooms.where((e) => e.status == RoomStatus.ready);
   if (availableRooms.isEmpty) {
-    print('Hotel is filled');
-    return;
+    return 'Hotel is filled';
   }
 
-  print(availableRooms.map((e) => e.number).join(' '));
+  return availableRooms.map((e) => e.number).join(' ');
 }
 
-void executeListGuestCommand(ListGuestCommand command) {
+String executeListGuestCommand(ListGuestCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
-    print('The hotel had not created');
-    return;
+    return 'The hotel had not created';
   }
 
   final guests = hotel.keyCards
@@ -181,40 +162,35 @@ void executeListGuestCommand(ListGuestCommand command) {
       .toList();
 
   if (guests.isEmpty) {
-    print('No any guest at the hotel for now');
-    return;
+    return 'No any guest at the hotel for now';
   }
 
-  print(guests.join(', '));
+  return guests.join(', ');
 }
 
-void executeGetGuestInRoomCommand(GetGuestInRoomCommand command) {
+String executeGetGuestInRoomCommand(GetGuestInRoomCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
-    print('The hotel had not created');
-    return;
+    return 'The hotel had not created';
   }
 
   final room = hotel.rooms.tryFirstWhere((e) => e.number == command.roomNumber);
   if (room == null) {
-    print('Romm number is invalid');
-    return;
+    return 'Romm number is invalid';
   }
 
   final owner = room.owner;
   if (owner == null) {
-    print('${room.number} is not in use');
-    return;
+    return '${room.number} is not in use';
   }
 
-  print(owner.name);
+  return owner.name;
 }
 
-void executeListGuestByAgeCommand(ListGuestByAgeCommand command) {
+String executeListGuestByAgeCommand(ListGuestByAgeCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
-    print('The hotel had not created');
-    return;
+    return 'The hotel had not created';
   }
 
   bool Function(int, int)? test;
@@ -249,24 +225,21 @@ void executeListGuestByAgeCommand(ListGuestByAgeCommand command) {
   }
 
   if (test == null) {
-    print('The operator is invalid');
-    return;
+    return 'The operator is invalid';
   }
 
   final guests = hotel.guests.where((e) => test!(e.age, command.age)).toList();
   if (guests.isEmpty) {
-    print('No guest matches this range of age');
-    return;
+    return 'No guest matches this range of age';
   }
 
-  print(guests.map((e) => e.name).toSet().join(', '));
+  return guests.map((e) => e.name).toSet().join(', ');
 }
 
-void executeListGuestByFloorCommand(ListGuestByFloorCommand command) {
+String executeListGuestByFloorCommand(ListGuestByFloorCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
-    print('The hotel had not created');
-    return;
+    return 'The hotel had not created';
   }
 
   final guests = hotel.rooms
@@ -277,18 +250,16 @@ void executeListGuestByFloorCommand(ListGuestByFloorCommand command) {
       .toList();
 
   if (guests.isEmpty) {
-    print('No guests are on floor ${command.floor}');
-    return;
+    return 'No guests are on floor ${command.floor}';
   }
 
-  print(guests.join(', '));
+  return guests.join(', ');
 }
 
-void executeCheckoutGuestByFloorCommand(CheckoutGuestByFloorCommand command) {
+String executeCheckoutGuestByFloorCommand(CheckoutGuestByFloorCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
-    print('The hotel had not created');
-    return;
+    return 'The hotel had not created';
   }
 
   final keyCards = hotel.keyCards
@@ -296,8 +267,7 @@ void executeCheckoutGuestByFloorCommand(CheckoutGuestByFloorCommand command) {
       .toList();
 
   if (keyCards.isEmpty) {
-    print('No rooms are on floor ${command.floor} is in use');
-    return;
+    return 'No rooms are on floor ${command.floor} is in use';
   }
 
   final checkoutRoomNumbers =
@@ -307,24 +277,20 @@ void executeCheckoutGuestByFloorCommand(CheckoutGuestByFloorCommand command) {
     keyCard.forceRetureKey();
   }
 
-  print(
-    'Room $checkoutRoomNumbers are checkout.',
-  );
+  return 'Room $checkoutRoomNumbers are checkout.';
 }
 
-void executeBookRoomsByFloorCommand(BookRoomsByFloorCommand command) {
+String executeBookRoomsByFloorCommand(BookRoomsByFloorCommand command) {
   final hotel = _hotel;
   if (hotel == null) {
-    print('The hotel had not created');
-    return;
+    return 'The hotel had not created';
   }
 
   final rooms = hotel.rooms.where((e) => e.floor == command.floor).toList();
   final isAllRoomAvailable = rooms.every((e) => e.status == RoomStatus.ready);
 
   if (!isAllRoomAvailable) {
-    print('Cannot book floor ${command.floor} for ${command.guestName}.');
-    return;
+    return 'Cannot book floor ${command.floor} for ${command.guestName}.';
   }
 
   final List<KeyCard> keyCards = [];
@@ -333,8 +299,7 @@ void executeBookRoomsByFloorCommand(BookRoomsByFloorCommand command) {
         hotel.keyCards.tryFirstWhere((e) => e.canSetupFor(room: room));
 
     if (keyCard == null) {
-      print('All key cards are in use');
-      return;
+      return 'All key cards are in use';
     }
 
     keyCard.setupFor(
@@ -348,7 +313,5 @@ void executeBookRoomsByFloorCommand(BookRoomsByFloorCommand command) {
     keyCards.add(keyCard);
   }
 
-  print(
-    'Room ${keyCards.map((e) => e.room?.number ?? '').join(', ')} are booked with keycard number ${keyCards.map((e) => e.number).join(', ')}',
-  );
+  return 'Room ${keyCards.map((e) => e.room?.number ?? '').join(', ')} are booked with keycard number ${keyCards.map((e) => e.number).join(', ')}';
 }
