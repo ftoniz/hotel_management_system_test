@@ -39,6 +39,8 @@ void executeCommand(Command command) {
     executeBookRoomCommand(command);
   } else if (command is CheckOutRoomCommand) {
     executeCheckoutRoomCommand(command);
+  } else if (command is ListAvailableRoomsCommand) {
+    executeListAvailableRoomsCommand(command);
   }
 }
 
@@ -134,4 +136,20 @@ void executeCheckoutRoomCommand(CheckOutRoomCommand command) {
   keyCard.returnKeyBy(command.guestName);
 
   print('Room ${room.number} is checkout.');
+}
+
+void executeListAvailableRoomsCommand(ListAvailableRoomsCommand command) {
+  final hotel = _hotel;
+  if (hotel == null) {
+    print('The hotel had not created');
+    return;
+  }
+
+  var availableRooms = hotel.rooms.where((e) => e.status == RoomStatus.ready);
+  if (availableRooms.isEmpty) {
+    print('Hotel is filled');
+    return;
+  }
+
+  print(availableRooms.map((e) => e.number).join(' '));
 }

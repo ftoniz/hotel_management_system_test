@@ -1,3 +1,30 @@
+Command generateCommand({required String command}) {
+  var rawParams = command.split(' ');
+  if (rawParams.isEmpty) {
+    return UnknownCommand(rawParams: rawParams);
+  }
+
+  var name = rawParams[0];
+  rawParams = rawParams.sublist(1);
+
+  switch (name) {
+    case 'create_hotel':
+      return CreateHotelCommand(rawParams: rawParams);
+
+    case 'book':
+      return BookRoomCommand(rawParams: rawParams);
+
+    case 'checkout':
+      return CheckOutRoomCommand(rawParams: rawParams);
+
+    case 'list_available_rooms':
+      return ListAvailableRoomsCommand(rawParams: rawParams);
+
+    default:
+      return UnknownCommand(rawParams: rawParams);
+  }
+}
+
 abstract class Command {
   Command({
     required this.rawParams,
@@ -70,26 +97,11 @@ class CheckOutRoomCommand extends Command {
       rawParams.length >= requiredParamslength ? rawParams[1] : '';
 }
 
-Command generateCommand({required String command}) {
-  var rawParams = command.split(' ');
-  if (rawParams.length < 2) {
-    return UnknownCommand(rawParams: rawParams);
-  }
+class ListAvailableRoomsCommand extends Command {
+  ListAvailableRoomsCommand({
+    required super.rawParams,
+  });
 
-  var name = rawParams[0];
-  rawParams = rawParams.sublist(1);
-
-  switch (name) {
-    case 'create_hotel':
-      return CreateHotelCommand(rawParams: rawParams);
-
-    case 'book':
-      return BookRoomCommand(rawParams: rawParams);
-
-    case 'checkout':
-      return CheckOutRoomCommand(rawParams: rawParams);
-
-    default:
-      return UnknownCommand(rawParams: rawParams);
-  }
+  @override
+  int get requiredParamslength => 0;
 }
