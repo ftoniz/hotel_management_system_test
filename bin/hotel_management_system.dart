@@ -5,7 +5,6 @@ import 'package:hotel_management_system/entity/guest.dart';
 import 'package:hotel_management_system/entity/hotel.dart';
 import 'package:hotel_management_system/entity/key_card.dart';
 import 'package:hotel_management_system/entity/room.dart';
-import 'package:hotel_management_system/extensions/list_extensions.dart';
 
 Hotel? _hotel;
 
@@ -70,6 +69,7 @@ String executeCreateHotelComamnd(CreateHotelCommand command) {
     floor: command.numberOfFloor,
     numberOfRoomsPerFloor: command.numberOfRoomsPerFloor,
   );
+
   return 'Hotel created with ${command.numberOfFloor} floor(s), ${command.numberOfRoomsPerFloor} room(s) per floor.';
 }
 
@@ -79,8 +79,7 @@ String executeBookRoomCommand(BookRoomCommand command) {
     return 'The hotel had not created';
   }
 
-  final room =
-      hotel.rooms.tryFirstWhere((room) => room.number == command.roomNumber);
+  final room = hotel.getRoom(number: command.roomNumber);
 
   if (room == null) {
     return 'The room number is incorrect';
@@ -88,8 +87,7 @@ String executeBookRoomCommand(BookRoomCommand command) {
 
   switch (room.status) {
     case RoomStatus.ready:
-      final keyCard =
-          hotel.keyCards.tryFirstWhere((e) => e.canSetupFor(room: room));
+      final keyCard = hotel.findAvailableKeyCardFor(room: room);
 
       if (keyCard == null) {
         return 'All key cards are in use';
@@ -116,22 +114,23 @@ String executeCheckoutRoomCommand(CheckoutRoomCommand command) {
     return 'The hotel had not created';
   }
 
-  final keyCard = hotel.keyCards.tryFirstWhere(
-    (key) => key.number == command.keyCardNumber && key.isUsing,
-  );
-
+  final keyCard = hotel.getKeyCard(number: command.keyCardNumber);
   final room = keyCard?.room;
 
-  if (keyCard == null || room == null) {
+  if (keyCard == null || room == null || !keyCard.isUsing) {
     return 'The key card number is incorrect or not in use';
   }
 
-  final canReturnKey = keyCard.canRetureKeyBy(command.guestName);
-  if (!canReturnKey) {
-    return 'Only ${keyCard.owner?.name ?? '-'} can checkout with keycard number ${keyCard.number}.';
+  final keycardOwnerName = keyCard.owner?.name;
+  final isCheckoutSuccess = hotel.checkout(
+    keyCard: keyCard,
+    guestName: command.guestName,
+  );
+
+  if (!isCheckoutSuccess) {
+    return 'Only ${keycardOwnerName ?? '-'} can checkout with keycard number ${command.keyCardNumber}.';
   }
 
-  keyCard.returnKeyBy(command.guestName);
   return 'Room ${room.number} is checkout.';
 }
 
@@ -141,12 +140,12 @@ String executeListAvailableRoomsCommand(ListAvailableRoomsCommand command) {
     return 'The hotel had not created';
   }
 
-  final availableRooms = hotel.rooms.where((e) => e.status == RoomStatus.ready);
+  final availableRooms = hotel.findAvailableRooms;
   if (availableRooms.isEmpty) {
     return 'Hotel is filled';
   }
 
-  return availableRooms.map((e) => e.number).join(' ');
+  return availableRooms.map((e) => e.number).join(', ');
 }
 
 String executeListGuestCommand(ListGuestCommand command) {
@@ -155,17 +154,13 @@ String executeListGuestCommand(ListGuestCommand command) {
     return 'The hotel had not created';
   }
 
-  final guests = hotel.keyCards
-      .where((e) => e.isUsing)
-      .map((e) => e.owner?.name ?? '')
-      .toSet()
-      .toList();
+  final guests = hotel.guests;
 
   if (guests.isEmpty) {
     return 'No any guest at the hotel for now';
   }
 
-  return guests.join(', ');
+  return guests.map((e) => e.name).toSet().toList().join(', ');
 }
 
 String executeGetGuestInRoomCommand(GetGuestInRoomCommand command) {
@@ -174,7 +169,7 @@ String executeGetGuestInRoomCommand(GetGuestInRoomCommand command) {
     return 'The hotel had not created';
   }
 
-  final room = hotel.rooms.tryFirstWhere((e) => e.number == command.roomNumber);
+  final room = hotel.getRoom(number: command.roomNumber);
   if (room == null) {
     return 'Romm number is invalid';
   }
@@ -242,18 +237,17 @@ String executeListGuestByFloorCommand(ListGuestByFloorCommand command) {
     return 'The hotel had not created';
   }
 
-  final guests = hotel.rooms
-      .where((e) => e.floor == command.floor && e.status == RoomStatus.using)
-      .map((e) => e.owner?.name ?? '')
-      .where((e) => e != '')
+  final guestsName = hotel
+      .findGuestsAtFloor(command.floor)
+      .map((e) => e.name)
       .toSet()
       .toList();
 
-  if (guests.isEmpty) {
+  if (guestsName.isEmpty) {
     return 'No guests are on floor ${command.floor}';
   }
 
-  return guests.join(', ');
+  return guestsName.join(', ');
 }
 
 String executeCheckoutGuestByFloorCommand(CheckoutGuestByFloorCommand command) {
@@ -262,9 +256,7 @@ String executeCheckoutGuestByFloorCommand(CheckoutGuestByFloorCommand command) {
     return 'The hotel had not created';
   }
 
-  final keyCards = hotel.keyCards
-      .where((e) => e.isUsing && e.room?.floor == command.floor)
-      .toList();
+  final keyCards = hotel.findUsingKeyCardsAtFloor(command.floor).toList();
 
   if (keyCards.isEmpty) {
     return 'No rooms are on floor ${command.floor} is in use';
@@ -274,7 +266,7 @@ String executeCheckoutGuestByFloorCommand(CheckoutGuestByFloorCommand command) {
       keyCards.map((e) => e.room?.number ?? '').join(', ');
 
   for (final keyCard in keyCards) {
-    keyCard.forceRetureKey();
+    hotel.forceCheckout(keyCard: keyCard);
   }
 
   return 'Room $checkoutRoomNumbers are checkout.';
@@ -286,7 +278,7 @@ String executeBookRoomsByFloorCommand(BookRoomsByFloorCommand command) {
     return 'The hotel had not created';
   }
 
-  final rooms = hotel.rooms.where((e) => e.floor == command.floor).toList();
+  final rooms = hotel.findRoomsAtFloor(command.floor);
   final isAllRoomAvailable = rooms.every((e) => e.status == RoomStatus.ready);
 
   if (!isAllRoomAvailable) {
@@ -295,8 +287,7 @@ String executeBookRoomsByFloorCommand(BookRoomsByFloorCommand command) {
 
   final List<KeyCard> keyCards = [];
   for (final room in rooms) {
-    final keyCard =
-        hotel.keyCards.tryFirstWhere((e) => e.canSetupFor(room: room));
+    final keyCard = hotel.findAvailableKeyCardFor(room: room);
 
     if (keyCard == null) {
       return 'All key cards are in use';
