@@ -113,4 +113,43 @@ class Hotel {
       .map((e) => e.owner ?? Guest(name: '', age: -1))
       .where((e) => e.age != -1)
       .toList();
+
+  List<Guest> findGuestsAtAge({required String operator, required int age}) {
+    bool Function(int, int)? test;
+
+    switch (operator) {
+      case '>':
+        test = (p0, p1) => p0 > p1;
+        break;
+
+      case '>=':
+        test = (p0, p1) => p0 >= p1;
+        break;
+
+      case '<':
+        test = (p0, p1) => p0 < p1;
+        break;
+
+      case '<=':
+        test = (p0, p1) => p0 <= p1;
+        break;
+
+      case '=':
+        test = (p0, p1) => p0 == p1;
+        break;
+
+      case '!=':
+        test = (p0, p1) => p0 != p1;
+        break;
+
+      default:
+        break;
+    }
+
+    if (test == null) {
+      return [];
+    }
+
+    return guests.where((e) => test!(e.age, age)).toList();
+  }
 }

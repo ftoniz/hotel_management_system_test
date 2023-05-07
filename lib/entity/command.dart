@@ -16,7 +16,7 @@ HotelCommand generateCommand({required String command}) {
 
   switch (name) {
     case 'create_hotel':
-      return CreateHotelHotelCommand(rawParams: rawParams);
+      return SetupHotelCommand(rawParams: rawParams);
 
     case 'book':
       return BookRoomHotelCommand(rawParams: rawParams);
@@ -80,9 +80,9 @@ class UnknownHotelCommand extends HotelCommand {
   }
 }
 
-/// This is a command to execute to create the hote;
-class CreateHotelHotelCommand extends HotelCommand {
-  CreateHotelHotelCommand({
+/// This is a command to execute to setup the hote;
+class SetupHotelCommand extends HotelCommand {
+  SetupHotelCommand({
     required super.rawParams,
   });
 
@@ -331,42 +331,11 @@ class ListGuestByAgeHotelCommand extends HotelCommand {
       return 'The hotel had not ready';
     }
 
-    bool Function(int, int)? test;
+    final guests = hotel.findGuestsAtAge(
+      operator: operator,
+      age: age,
+    );
 
-    switch (operator) {
-      case '>':
-        test = (p0, p1) => p0 > p1;
-        break;
-
-      case '>=':
-        test = (p0, p1) => p0 >= p1;
-        break;
-
-      case '<':
-        test = (p0, p1) => p0 < p1;
-        break;
-
-      case '<=':
-        test = (p0, p1) => p0 <= p1;
-        break;
-
-      case '=':
-        test = (p0, p1) => p0 == p1;
-        break;
-
-      case '!=':
-        test = (p0, p1) => p0 != p1;
-        break;
-
-      default:
-        break;
-    }
-
-    if (test == null) {
-      return 'The operator is invalid';
-    }
-
-    final guests = hotel.guests.where((e) => test!(e.age, age)).toList();
     if (guests.isEmpty) {
       return 'No guest matches this range of age';
     }
