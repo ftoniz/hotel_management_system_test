@@ -1,3 +1,4 @@
+import 'package:hotel_management_system/entity/hotel.dart';
 import 'package:test/test.dart';
 
 import '../bin/hotel_management_system.dart';
@@ -27,9 +28,10 @@ book_by_floor 1 TonyStark 48
 book_by_floor 2 TonyStark 48''';
 
     final commands = getCommandsFromString(fakeInput);
+    final hotel = Hotel();
 
     final results =
-        commands.map((command) => executeCommand(command)).join('\n');
+        commands.map((command) => command.execute(hotel: hotel)).join('\n');
 
     final expectOutput = '''Hotel created with 2 floor(s), 3 room(s) per floor.
 Room 203 is booked by Thor with keycard number 1.

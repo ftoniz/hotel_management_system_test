@@ -5,25 +5,35 @@ import 'key_card.dart';
 import 'room.dart';
 
 class Hotel {
-  late final List<Room> _rooms;
-  late final List<KeyCard> _keyCards;
+  Hotel();
 
-  List<Guest> get guests => _keyCards
-      .where((e) => e.isUsing)
-      .map((e) => e.owner ?? Guest(name: '', age: -1))
-      .where((e) => e.age != -1)
-      .toList();
+  static Hotel? _instance;
+  static Hotel get instance => _instance ??= Hotel();
 
-  Hotel({
-    required int floor,
+  List<Room> _rooms = [];
+  List<KeyCard> _keyCards = [];
+  bool _isAllowToSetup = true;
+  bool get isAllowToSetup => _isAllowToSetup;
+  bool get isReadyToUse => _rooms.isNotEmpty && _keyCards.isNotEmpty;
+
+  void reset() {
+    _rooms = [];
+    _keyCards = [];
+    _isAllowToSetup = true;
+  }
+
+  bool setup({
+    required int numberOfFloor,
     required int numberOfRoomsPerFloor,
   }) {
+    if (!_isAllowToSetup) return false;
+
     var currentFloor = 1;
     var currentRoomOnFloor = 0;
     var keyCardNumber = 1;
     List<Room> rooms = [];
     List<KeyCard> keyCards = [];
-    while (currentFloor <= floor) {
+    while (currentFloor <= numberOfFloor) {
       if (currentRoomOnFloor >= numberOfRoomsPerFloor) {
         currentFloor += 1;
         currentRoomOnFloor = 0;
@@ -46,7 +56,15 @@ class Hotel {
 
     _rooms = rooms;
     _keyCards = keyCards;
+    _isAllowToSetup = false;
+    return true;
   }
+
+  List<Guest> get guests => _keyCards
+      .where((e) => e.isUsing)
+      .map((e) => e.owner ?? Guest(name: '', age: -1))
+      .where((e) => e.age != -1)
+      .toList();
 
   // Room
   List<Room> get rooms => _rooms;
